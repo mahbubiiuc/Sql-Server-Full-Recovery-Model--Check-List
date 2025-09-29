@@ -1,0 +1,26 @@
+-- Step 1: Get the last full backup timestamp
+WITH LastFullBackup AS (
+    SELECT MAX(backup_finish_date) AS LastFullBackupFinishDate
+    FROM msdb.dbo.backupset
+    WHERE database_name = 'MINTDB'
+      AND type = 'D' -- D = Full Backup
+)
+
+-- Step 2: Get all log backups after that
+SELECT 
+    b.database_name,
+	b.type,
+    b.backup_start_date,
+    b.backup_finish_date,
+    b.first_lsn,
+    b.last_lsn,
+    b.checkpoint_lsn,
+    b.backup_size / 1024 / 1024 AS BackupSizeMB,
+    mf.physical_device_name
+FROM msdb.dbo.backupset b
+JOIN msdb.dbo.backupmediafamily mf ON b.media_set_id = mf.media_set_id
+CROSS JOIN LastFullBackup lfb
+WHERE b.database_name = 'MINTDB'
+  AND b.type IN ('D', 'L') -- L = Log Backup
+  AND b.backup_finish_date >= lfb.LastFullBackupFinishDate
+ORDER BY b.backup_start_date desc;
