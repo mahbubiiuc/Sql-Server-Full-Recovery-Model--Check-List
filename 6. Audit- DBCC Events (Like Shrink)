@@ -1,0 +1,21 @@
+SELECT 
+    te.name AS event_name,
+    t.DatabaseName,
+    t.ObjectName,
+    t.TextData,
+    t.HostName,
+    t.ApplicationName,
+    t.LoginName,
+    t.SPID,
+    t.StartTime
+FROM 
+    sys.fn_trace_gettable(CONVERT(VARCHAR(150), (SELECT TOP 1 f.[value] 
+                                                 FROM sys.fn_trace_getinfo(NULL) f 
+                                                 WHERE f.property = 2)), DEFAULT) t
+JOIN 
+    sys.trace_events te ON t.EventClass = te.trace_event_id
+WHERE 
+    t.EventClass IN (116, 117)  -- 116 = DBCC, 117 = Object:Changed
+    AND t.TextData LIKE '%DBCC SHRINK%'
+ORDER BY 
+    t.StartTime DESC;
