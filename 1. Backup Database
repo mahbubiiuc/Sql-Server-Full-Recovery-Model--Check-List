@@ -1,0 +1,13 @@
+BACKUP DATABASE MINTDB TO DISK = 'D:\Backups\MINTDB_Full.bak' WITH INIT, COMPRESSION, STATS = 5;
+
+
+
+
+WITH INIT means:
+"Initialize the backup file" — i.e., overwrite the existing .bak file if it already exists.
+
+WITH STATS = X option tells SQL Server to display progress messages during the backup or restore operation.
+X is a percentage value (e.g., 10 means report every 10%).
+
+WITH COMPRESSION tells SQL Server to compress the backup file to save disk space.
+So instead of writing a full-size .bak file, SQL Server compresses it on the fly during the backup process.
