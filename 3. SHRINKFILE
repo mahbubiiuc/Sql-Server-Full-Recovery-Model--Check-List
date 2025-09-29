@@ -1,0 +1,19 @@
+USE MINTDB;
+
+GO
+CHECKPOINT;
+DBCC SHRINKFILE (MINTDB_log, 1024);
+
+
+
+
+Common Mistake: Log File Not Shrinking
+People often try to shrink a log file, but it doesn’t work if:
+
+No log backups exist
+Recovery model is FULL but no backups are being taken
+
+Solution:
+Do a full backup
+Then do a log backup
+Then you can shrink
