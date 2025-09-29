@@ -12,11 +12,12 @@ SELECT
 	b.type,
     b.backup_start_date,
     b.backup_finish_date,
+	mf.physical_device_name,
+	(SUM(CASE WHEN b.type = 'L' THEN b.backup_size / 1024 / 1024 ELSE 0 END) OVER (ORDER BY b.database_name)) / 1024 AS TOTAL_Trans_BackupSize_GB,
     b.first_lsn,
     b.last_lsn,
     b.checkpoint_lsn,
-    b.backup_size / 1024 / 1024 AS BackupSizeMB,
-    mf.physical_device_name
+    b.backup_size / 1024 / 1024 AS BackupSizeMB
 FROM msdb.dbo.backupset b
 JOIN msdb.dbo.backupmediafamily mf ON b.media_set_id = mf.media_set_id
 CROSS JOIN LastFullBackup lfb
