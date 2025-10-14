@@ -7,7 +7,7 @@ WITH LastFullBackup AS (
 )
 
 -- Step 2: Get all log backups after that
-SELECT 
+SELECT  
     b.database_name,
 	b.type,
     b.backup_start_date,
@@ -17,11 +17,15 @@ SELECT
     b.first_lsn,
     b.last_lsn,
     b.checkpoint_lsn,
-    b.backup_size / 1024 / 1024 AS BackupSizeMB
+    b.backup_size / 1024 / 1024 AS BackupSizeMB,
+	CASE WHEN b.type = 'D' THEN 'RESTORE DATABASE ['+b.database_name+'] FROM DISK = '''+mf.physical_device_name+''' WITH REPLACE, NORECOVERY, STATS = 5;'
+		 ELSE 'RESTORE LOG ['+b.database_name+'] FROM DISK = '''+mf.physical_device_name+''' WITH NORECOVERY;'
+	END RestoreCommand
 FROM msdb.dbo.backupset b
 JOIN msdb.dbo.backupmediafamily mf ON b.media_set_id = mf.media_set_id
 CROSS JOIN LastFullBackup lfb
 WHERE b.database_name = 'MINTDB'
   AND b.type IN ('D', 'L') -- L = Log Backup
   AND b.backup_finish_date >= lfb.LastFullBackupFinishDate
+  --AND cast(b.backup_finish_date as date) = cast('2025-09-29' as date)
 ORDER BY b.backup_start_date desc;
